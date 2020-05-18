@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="net.chensee.base.action.userGroup.mapper.UserGroupResourceDao">
+
+    <select id="getResourceByUserGroupId" resultType="net.chensee.base.action.userGroup.po.UserGroupResourcePo">
+        SELECT ugrr.group_id AS groupId, r.*,rp.title AS parentName,f.name AS folderName,
+        ugrr.visual_folder_id AS visualFolderId, ugrr.exclude_columns AS excludeColumns
+        FROM tb_resource AS r
+        LEFT JOIN tb_resource AS rp ON r.parent_id = rp.id
+        LEFT JOIN tb_folder AS f ON r.folder_id = f.id
+        LEFT JOIN tb_user_group_resource AS ugrr ON ugrr.resource_id = r.id
+        WHERE ugrr.group_id = #{id} AND r.status = 0;
+    </select>
+
+    <select id="getUserGroupResourceByUserId" resultType="net.chensee.base.action.userGroup.po.UserGroupResourcePo">
+        SELECT ugrr.group_id AS groupId, r.*,rp.title AS parentName,f.name AS folderName,
+        ugrr.visual_folder_id AS visualFolderId, ugrr.exclude_columns AS excludeColumns
+        FROM tb_resource AS r
+        LEFT JOIN tb_resource AS rp ON r.parent_id = rp.id
+        LEFT JOIN tb_folder AS f ON r.folder_id = f.id
+        LEFT JOIN tb_user_group_resource AS ugrr ON ugrr.resource_id = r.id
+        LEFT JOIN tb_user_to_user_group AS tutug ON tutug.group_id = ugrr.group_id
+        WHERE r.status = 0 AND tutug.status = 0 AND tutug.user_id = #{userId};
+    </select>
+
+</mapper>

@@ -1,0 +1,295 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="net.chensee.base.action.user.mapper.UserDao">
+    <insert id="addUser" keyProperty="id" useGeneratedKeys="true">
+        INSERT INTO tb_user
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="realName!=null"> `real_name`,</if>
+            <if test="nickName!=null"> `nick_name`,</if>
+            <if test="mobile!=null"> `mobile`,</if>
+            <if test="avatar!=null"> `avatar`,</if>
+            <if test="folderId!=null"> `folder_id`,</if>
+            <if test="createTime!=null"> `create_time`,</if>
+            <if test="createBy!=null"> `create_by`,</if>
+            <if test="updateTime!=null"> `update_time`,</if>
+            <if test="updateBy!=null"> `update_by`,</if>
+            <if test="version!=null"> `version_`,</if>
+            <if test="status!=null"> `status`,</if>
+        </trim>
+        VALUES
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="realName!=null"> #{realName,jdbcType=VARCHAR},</if>
+            <if test="nickName!=null"> #{nickName,jdbcType=VARCHAR},</if>
+            <if test="mobile!=null"> #{mobile,jdbcType=VARCHAR},</if>
+            <if test="avatar!=null"> #{avatar,jdbcType=VARCHAR},</if>
+            <if test="folderId!=null"> #{folderId,jdbcType=BIGINT},</if>
+            <if test="createTime!=null"> #{createTime,jdbcType=DATE},</if>
+            <if test="createBy!=null"> #{createBy,jdbcType=BIGINT},</if>
+            <if test="updateTime!=null"> #{updateTime,jdbcType=DATE},</if>
+            <if test="updateBy!=null"> #{updateBy,jdbcType=BIGINT},</if>
+            <if test="version!=null"> #{version,jdbcType=INTEGER},</if>
+            <if test="status!=null"> #{status,jdbcType=INTEGER},</if>
+        </trim>
+    </insert>
+
+    <update id="updateUser"  parameterType="LONG">
+        UPDATE tb_user
+        <trim prefix="set" suffixOverrides=",">
+            <if test="realName!=null"> real_name=#{realName},</if>
+            <if test="nickName!=null"> nick_name=#{nickName},</if>
+            <if test="mobile!=null"> mobile=#{mobile},</if>
+            <if test="avatar!=null"> avatar=#{avatar},</if>
+            <if test="folderId!=null"> folder_id=#{folderId},</if>
+            <if test="createTime!=null"> create_time=#{createTime},</if>
+            <if test="createBy!=null"> create_by=#{createBy},</if>
+            <if test="updateTime!=null"> update_time=#{updateTime},</if>
+            <if test="updateBy!=null"> update_by=#{updateBy},</if>
+            <if test="version!=null"> version_=#{version},</if>
+            <if test="status!=null"> status=#{status},</if>
+        </trim>
+        WHERE id = #{id}
+    </update>
+
+    <update id="deleteUser">
+        UPDATE tb_user set status = 1 WHERE id = #{id}
+    </update>
+
+    <select id="getAllUser" resultType="net.chensee.base.action.user.vo.UserVo">
+        select * from tb_user where status = 0 and
+        folder_id in
+        <foreach collection="list" item="id" index="index" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+        limit #{pageStart}, #{pageSize}
+    </select>
+
+    <select id="getUsersCount" resultType="Long">
+        select count(*) from tb_user
+        <where>
+            <if test="name != null">
+                and (real_name like concat('%', #{name}, '%') or nick_name like concat('%', #{name}, '%'))
+            </if>
+            <if test="true">
+                and status = 0
+            </if>
+            <if test="true">
+                and
+                folder_id in
+                <foreach collection="list" item="id" index="index" open="(" close=")" separator=",">
+                    #{id}
+                </foreach>
+            </if>
+        </where>
+    </select>
+
+    <select id="getAllUsers" resultType="net.chensee.base.action.user.vo.UserVo">
+        select * from tb_user where status = 0
+    </select>
+
+    <select id="getByRealName" resultType="net.chensee.base.action.user.vo.UserVo">
+        select * from tb_user
+        <where>
+            <if test="name != null">
+                and (real_name like concat('%', #{name}, '%') or nick_name like concat('%', #{name}, '%'))
+            </if>
+            <if test="true">
+                and status = 0
+            </if>
+        </where>
+        limit #{pageStart}, #{pageSize}
+    </select>
+
+    <select id="getById" resultType="net.chensee.base.action.user.vo.UserVo">
+        select * from tb_user where id = #{id}
+    </select>
+
+    <select resultType="Long" id="getCount">
+        select count(1) from tb_user
+        <where>
+            <if test="name != null">
+                and (real_name like concat('%', #{name}, '%') or nick_name like concat('%', #{name}, '%'))
+            </if>
+            <if test="true">
+                and status = 0
+            </if>
+        </where>
+    </select>
+
+    <select id="getDeptsByUserId" resultType="net.chensee.base.action.dept.vo.DeptVo">
+        select d.*, pd.name as parentName, pd.short_name as parentShortName
+        from tb_dept d
+        left join tb_dept pd on d.parent_id = pd.id
+        left join tb_user_to_dept ud on d.id = ud.dept_id
+        where ud.user_id = #{userId} and d.status = 0 and ud.status = 0
+    </select>
+
+    <select id="getUserDefaultDept"  resultType="net.chensee.base.action.dept.vo.DeptVo">
+        select d.*, pd.name as parentName, pd.short_name as parentShortName
+        from tb_dept d
+        left join tb_dept pd on d.parent_id = pd.id
+        left join tb_user_to_dept ud on d.id = ud.dept_id
+        where ud.user_id = #{userId} and ud.is_default = 1 and d.status = 0 and ud.status = 0
+    </select>
+
+    <update id="removeUserToDept">
+        update tb_user_to_dept set status = 1 where user_id = #{userId} and dept_id = #{deptId}
+    </update>
+
+    <insert id="addUserToDept">
+        insert into tb_user_to_dept (user_id, dept_id) values (#{userId}, #{deptId})
+        on duplicate key update status = 0
+    </insert>
+
+    <update id="removeDefaultDept">
+        update tb_user_to_dept set is_default = 0 where user_id = #{userId}
+    </update>
+
+    <update id="updateDefaultDept">
+        update tb_user_to_dept set is_default = 1 where user_id = #{userId} and dept_id = #{deptId}
+    </update>
+
+    <select id="getRolesByUserId" resultType="net.chensee.base.action.role.vo.RoleVo">
+        select r.*, pr.name as parentName, d.name as deptName
+        from tb_role r
+        left join tb_role pr on r.parent_id = pr.id
+        left join tb_dept d on r.dept_id = d.id
+        left join tb_user_to_role ur on ur.role_id = r.id
+        where ur.user_id = #{userId} and r.status = 0 and ur.status = 0
+    </select>
+
+    <update id="removeUserToRole">
+        update tb_user_to_role set status = 1 where user_id = #{userId} and role_id = #{roleId}
+    </update>
+
+    <insert id="addUserToRole">
+        insert into tb_user_to_role (user_id, role_id) values (#{userId}, #{roleId})
+        on duplicate key update status = 0
+    </insert>
+
+    <select id="getUserGroupsByUserId" resultType="net.chensee.base.action.userGroup.vo.UserGroupVo">
+        select ug.*, d.name as deptName
+        from tb_user_group ug
+        left join tb_dept d on ug.dept_id = d.id
+        left join tb_user_to_user_group uug on uug.group_id = ug.id
+        where uug.user_id = #{userId} and ug.status = 0 and uug.status = 0
+    </select>
+
+    <update id="removeUserToUserGroup">
+        update tb_user_to_user_group set status = 1 where user_id = #{userId} and group_id = #{userGroupId}
+    </update>
+
+    <insert id="addUserToUserGroup">
+        insert into tb_user_to_user_group (user_id, group_id) values (#{userId}, #{userGroupId})
+        on duplicate key update status = 0
+    </insert>
+
+    <select id="getUserResources" resultType="net.chensee.base.action.user.po.UserResourcePo">
+        SELECT * FROM tb_user_resource WHERE user_id = #{userId}
+    </select>
+
+    <select id="getExcludeResources" resultType="java.util.HashMap">
+        select r.id as resourceId,ur.visual_folder_id as visualFolderId from tb_resource r
+        left join tb_user_resource ur on ur.resource_id = r.id
+        where ur.user_id = #{userId} and ur.direct = -1 and r.status = 0
+    </select>
+
+    <delete id="deleteUserToResource">
+        delete from tb_user_resource where user_id = #{userId}
+    </delete>
+
+    <insert id="addOwnResource">
+        insert into tb_user_resource (user_id, resource_id, visual_folder_id, direct, exclude_columns, include_columns)
+        values (#{userId}, #{resourceId}, #{visualFolderId}, #{direct}, #{excludeColumns}, #{includeColumns})
+    </insert>
+
+    <insert id="addUserWriteFolder">
+        insert into tb_user_write_folder (user_id, folder_id, folder_name, is_default, status)
+        values (#{userId}, #{folderId}, #{folderName}, #{isDefault}, 0)
+        on duplicate key update status = 0
+    </insert>
+
+    <update id="deleteUserWriteFolder">
+        update tb_user_write_folder set status = 1 where user_id = #{userId} and folder_id = #{folderId}
+    </update>
+
+    <select id="getUserWriteFolders" resultType="net.chensee.base.action.folder.vo.FolderVo">
+        select f.* from tb_folder f
+        left join tb_user_write_folder uf on uf.folder_id = f.id
+        where uf.user_id = #{userId} and f.status = 0 and uf.status = 0 and f.is_leaf = 1
+        order by uf.is_default desc
+    </select>
+
+    <update id="removeUserLinkDept">
+        update tb_user_to_dept set status = 1 where user_id = #{userId}
+    </update>
+
+    <update id="removeUserLinkRole">
+        update tb_user_to_role set status = 1 where user_id = #{userId}
+    </update>
+
+    <update id="removeUserLinkUserGroup">
+        update tb_user_to_user_group set status = 1 where user_id = #{userId}
+    </update>
+
+    <delete id="removeUserLinkResource">
+        delete from tb_user_resource where user_id = #{userId}
+    </delete>
+
+    <select id="getExcludeColumns" resultType="java.lang.String">
+        SELECT exclude_columns
+        FROM tb_user_resource
+        WHERE user_id = #{userId}
+        AND resource_id = #{resourceId}
+        AND visual_folder_id = #{folderId}
+        AND direct = #{direct}
+    </select>
+
+    <select id="isExistUserInSelectDept" resultType="java.lang.Integer">
+        select count(1) from tb_user_to_dept
+        where user_id=#{userId}
+        and dept_id=#{deptId}
+        and status=0
+    </select>
+
+    <delete id="removeExcludeResourceByUserOprType">
+        DELETE FROM tb_user_resource WHERE direct &lt; 0 AND user_id = #{userId}
+    </delete>
+
+    <delete id="removeIncludeResourceByUserOprType">
+        DELETE FROM tb_user_resource WHERE direct &gt; 0 AND user_id = #{userId}
+    </delete>
+
+    <delete id="removeResourceByUserResourceFolder">
+        DELETE FROM tb_user_resource WHERE user_id = #{userId} AND resource_id = #{resourceId}
+        AND visual_folder_id = #{folderId}
+    </delete>
+
+    <select id="getDefaultWriteFolder" resultType="net.chensee.base.action.folder.vo.FolderVo">
+        SELECT tf.* FROM tb_user_write_folder tuwf
+        LEFT JOIN tb_folder tf ON tuwf.folder_id = tf.id
+        WHERE user_id = #{userId} AND is_default = 1;
+    </select>
+
+    <update id="deleteUserAllWriteFolder">
+        update tb_user_write_folder set status = 1 where user_id = #{userId}
+    </update>
+
+    <select id="getUserWriteFolder" resultType="net.chensee.base.action.folder.vo.WritableFolderVo">
+        select uwf.* from tb_user_write_folder uwf
+	    left join tb_folder f on f.id = uwf.folder_id
+	    where uwf.user_id = #{userId} and f.status = 0 and uwf.status = 0 and f.is_leaf = 1
+	    order by uwf.is_default desc;
+    </select>
+
+    <select id="getAllWritableFolders" resultType="net.chensee.base.action.folder.vo.WritableFolderVo">
+        select uwf.* from tb_user_write_folder uwf
+	    left join tb_folder f on f.id = uwf.folder_id
+	    where f.status = 0 and uwf.status = 0 and f.is_leaf = 1 limit #{pageStart}, #{pageSize};
+    </select>
+    
+    <select id="getCountIsDefault" resultType="java.lang.Integer">
+        select count(*) from tb_user_write_folder
+        where user_id = #{userId} and is_default = 1 and status = 0;
+    </select>
+
+</mapper>

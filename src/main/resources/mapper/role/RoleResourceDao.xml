@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="net.chensee.base.action.role.mapper.RoleResourceDao">
+
+    <select id="getResourceByRoleId" resultType="net.chensee.base.action.role.po.RoleResourcePo">
+        SELECT rr.role_id AS roleId, r.*,rp.title AS parentName,f.name AS folderName,
+        rr.visual_folder_id AS visualFolderId, rr.exclude_columns AS excludeColumns
+        FROM tb_resource AS r
+        LEFT JOIN tb_resource AS rp ON r.parent_id = rp.id
+        LEFT JOIN tb_folder AS f ON r.folder_id = f.id
+        LEFT JOIN tb_role_resource AS rr ON rr.resource_id = r.id
+        WHERE rr.role_id = #{id} AND r.status = 0;
+    </select>
+
+    <select id="getRoleResourceByUserId" resultType="net.chensee.base.action.role.po.RoleResourcePo">
+        SELECT rr.role_id AS roleId, r.*,rp.title AS parentName,f.name AS folderName,
+        rr.visual_folder_id AS visualFolderId, rr.exclude_columns AS excludeColumns
+        FROM tb_resource AS r
+        LEFT JOIN tb_resource AS rp ON r.parent_id = rp.id
+        LEFT JOIN tb_folder AS f ON r.folder_id = f.id
+        LEFT JOIN tb_role_resource AS rr ON rr.resource_id = r.id
+        LEFT JOIN tb_user_to_role AS tutr ON tutr.role_id = rr.role_id
+        WHERE r.status = 0 AND tutr.status = 0 AND tutr.user_id = #{userId};
+    </select>
+
+</mapper>

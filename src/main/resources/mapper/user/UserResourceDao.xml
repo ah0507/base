@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="net.chensee.base.action.user.mapper.UserResourceDao">
+
+    <select id="getUserUniqueResourcesByUserId" resultType="net.chensee.base.action.user.po.UserResourcePo">
+        SELECT ur.user_id AS userId, r.*, ur.visual_folder_id AS visualFolderId, rp.title AS parentName,
+        f.name AS folderName, ur.direct AS direct, ur.exclude_columns AS excludeColumns,
+        ur.include_columns AS includeColumns
+        FROM tb_resource r
+        LEFT JOIN tb_user_resource ur ON ur.resource_id = r.id
+        LEFT JOIN tb_resource AS rp ON r.parent_id = rp.id
+        LEFT JOIN tb_folder AS f ON r.folder_id = f.id
+        WHERE ur.user_id = #{userId} AND r.status = 0
+    </select>
+
+    <select id="getUserExcludeResourcesByUserId" resultType="net.chensee.base.action.user.po.UserResourcePo">
+        SELECT ur.user_id AS userId, r.*, ur.visual_folder_id AS visualFolderId, rp.title AS parentName,
+        f.name AS folderName, ur.direct AS direct, ur.exclude_columns AS excludeColumns,
+        ur.include_columns AS includeColumns
+        FROM tb_resource r
+        LEFT JOIN tb_user_resource ur ON ur.resource_id = r.id
+        LEFT JOIN tb_resource AS rp ON r.parent_id = rp.id
+        LEFT JOIN tb_folder AS f ON r.folder_id = f.id
+        WHERE ur.user_id = #{userId} AND ur.direct &lt; 0 AND r.status = 0
+    </select>
+
+    <select id="getUserIncludeResourcesByUserId" resultType="net.chensee.base.action.user.po.UserResourcePo">
+        SELECT ur.user_id AS userId, r.*, ur.visual_folder_id AS visualFolderId, rp.title AS parentName,
+        f.name AS folderName, ur.direct AS direct, ur.exclude_columns AS excludeColumns,
+        ur.include_columns AS includeColumns
+        FROM tb_resource r
+        LEFT JOIN tb_user_resource ur ON ur.resource_id = r.id
+        LEFT JOIN tb_resource AS rp ON r.parent_id = rp.id
+        LEFT JOIN tb_folder AS f ON r.folder_id = f.id
+        WHERE ur.user_id = #{userId} AND ur.direct = 1 AND r.status = 0
+    </select>
+
+</mapper>

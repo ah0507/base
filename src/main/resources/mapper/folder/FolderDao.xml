@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="net.chensee.base.action.folder.mapper.FolderDao">
+    <insert id="addFolder" keyProperty="id" useGeneratedKeys="true">
+        INSERT INTO tb_folder
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="parentId!=null"> `parent_id`,</if>
+            <if test="name!=null"> `name`,</if>
+            <if test="type!=null"> `type_`,</if>
+            <if test="rank!=null"> `rank`,</if>
+            <if test="business!=null"> `business`,</if>
+            <if test="businessId!=null"> `business_id`,</if>
+            <if test="isLeaf!=null"> `is_leaf`,</if>
+            <if test="createTime!=null"> `create_time`,</if>
+            <if test="createBy!=null"> `create_by`,</if>
+            <if test="updateTime!=null"> `update_time`,</if>
+            <if test="updateBy!=null"> `update_by`,</if>
+            <if test="version!=null"> `version_`,</if>
+            <if test="status!=null"> `status`,</if>
+        </trim>
+        VALUES
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="parentId!=null"> #{parentId,jdbcType=BIGINT},</if>
+            <if test="name!=null"> #{name,jdbcType=VARCHAR},</if>
+            <if test="type!=null"> #{type,jdbcType=VARCHAR},</if>
+            <if test="rank!=null"> #{rank,jdbcType=INTEGER},</if>
+            <if test="business!=null"> #{business,jdbcType=VARCHAR},</if>
+            <if test="businessId!=null"> #{businessId,jdbcType=VARCHAR},</if>
+            <if test="isLeaf!=null"> #{isLeaf,jdbcType=INTEGER},</if>
+            <if test="createTime!=null"> #{createTime,jdbcType=DATE},</if>
+            <if test="createBy!=null"> #{createBy,jdbcType=BIGINT},</if>
+            <if test="updateTime!=null"> #{updateTime,jdbcType=DATE},</if>
+            <if test="updateBy!=null"> #{updateBy,jdbcType=BIGINT},</if>
+            <if test="version!=null"> #{version,jdbcType=INTEGER},</if>
+            <if test="status!=null"> #{status,jdbcType=INTEGER},</if>
+        </trim>
+    </insert>
+
+    <update id="updateFolder"  parameterType="LONG">
+        UPDATE tb_folder
+        <trim prefix="set" suffixOverrides=",">
+            <if test="parentId!=null"> parent_id=#{parentId},</if>
+            <if test="name!=null"> name=#{name},</if>
+            <if test="type!=null"> type_=#{type},</if>
+            <if test="rank!=null"> rank=#{rank},</if>
+            <if test="business!=null"> business=#{business},</if>
+            <if test="businessId!=null"> business_id=#{businessId},</if>
+            <if test="isLeaf!=null"> is_leaf=#{isLeaf},</if>
+            <if test="createTime!=null"> create_time=#{createTime},</if>
+            <if test="createBy!=null"> create_by=#{createBy},</if>
+            <if test="updateTime!=null"> update_time=#{updateTime},</if>
+            <if test="updateBy!=null"> update_by=#{updateBy},</if>
+            <if test="version!=null"> version_=#{version},</if>
+            <if test="status!=null"> status=#{status},</if>
+        </trim>
+        WHERE id = #{id}
+    </update>
+
+    <select id="getAllFolder" resultType="net.chensee.base.action.folder.vo.FolderVo">
+        select f.*, pf.name as parentName
+        from tb_folder f
+        left join tb_folder pf on f.parent_id = pf.id
+    </select>
+
+    <delete id="deleteFolder">
+        UPDATE tb_folder set status = 1 WHERE id = #{id}
+    </delete>
+
+    <select id="getById" resultType="net.chensee.base.action.folder.vo.FolderVo">
+        select f.*, pf.name as parentName
+        from tb_folder f
+        left join tb_folder pf on f.parent_id = pf.id
+        where f.id = #{id}
+    </select>
+
+    <select id="getByBusiness" resultType="net.chensee.base.action.folder.vo.FolderVo">
+        select f.*, pf.name as parentName
+        from tb_folder f
+        left join tb_folder pf on f.parent_id = pf.id
+        where f.business = #{business} and f.business_id = #{businessId} and f.status = 0
+    </select>
+
+    <update id="updateUserWriteFolderName" parameterType="Long">
+        update tb_user_write_folder set folder_name = (select name from tb_folder where id = #{folderId}) where folder_id = #{folderId}
+    </update>
+
+    <update id="deleteUserWriteFolder">
+        update tb_user_write_folder set status = 1 where folder_id = #{folderId}
+    </update>
+
+    <select id="getUserFolderByDeptId" resultType="net.chensee.base.action.folder.vo.FolderVo">
+        SELECT f.*, pf.name as parentName
+        FROM tb_folder f
+        LEFT JOIN tb_folder pf ON f.parent_id = pf.id
+        WHERE pf.business = 'dept' AND pf.business_id = #{deptId}
+        AND f.business = 'user'
+    </select>
+
+    <select id="getUsersInfoById" resultType="net.chensee.base.action.user.vo.UserVo">
+        SELECT u.*
+        FROM tb_user AS u
+        JOIN tb_user_write_folder AS uwf
+        ON u.id = uwf.user_id
+        WHERE uwf.folder_id = #{id}
+        AND u.status = 0;
+    </select>
+
+    <select id="checkIsLeaf" resultType="java.lang.Long">
+        SELECT is_leaf FROM tb_folder WHERE id = #{folderId};
+    </select>
+
+    <select id="getChildFolders" resultType="net.chensee.base.action.folder.vo.FolderVo">
+        select f.*, pf.name as parentName
+        from tb_folder f
+        left join tb_folder pf on f.parent_id = pf.id
+        where f.parent_id = #{folderId}
+    </select>
+
+    <update id="deleteBatchFolder">
+        update tb_folder set status = 1
+        where id in
+        <foreach collection="folderIdList" item="id" index="index" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+    </update>
+
+    <select id="getBatchFolders" resultType="net.chensee.base.action.folder.vo.FolderVo">
+        select * from tb_folder where id in
+        <foreach collection="folderIdList" item="id" index="index" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+    </select>
+
+</mapper>

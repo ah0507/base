@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="net.chensee.base.action.role.mapper.RoleDao">
+    <insert id="addRole" keyProperty="id" useGeneratedKeys="true">
+        INSERT INTO tb_role
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="name!=null">`name`,</if>
+            <if test="parentId!=null">`parent_id`,</if>
+            <if test="deptId!=null">`dept_id`,</if>
+            <if test="folderId!=null">`folder_id`,</if>
+            <if test="createTime!=null">`create_time`,</if>
+            <if test="createBy!=null">`create_by`,</if>
+            <if test="updateTime!=null">`update_time`,</if>
+            <if test="updateBy!=null">`update_by`,</if>
+            <if test="version!=null">`version_`,</if>
+            <if test="status!=null">`status`,</if>
+        </trim>
+        VALUES
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="name!=null">#{name,jdbcType=VARCHAR},</if>
+            <if test="parentId!=null">#{parentId,jdbcType=INTEGER},</if>
+            <if test="deptId!=null">#{deptId,jdbcType=INTEGER},</if>
+            <if test="folderId!=null">#{folderId,jdbcType=INTEGER},</if>
+            <if test="createTime!=null">#{createTime,jdbcType=DATE},</if>
+            <if test="createBy!=null">#{createBy,jdbcType=BIGINT},</if>
+            <if test="updateTime!=null">#{updateTime,jdbcType=DATE},</if>
+            <if test="updateBy!=null">#{updateBy,jdbcType=BIGINT},</if>
+            <if test="version!=null">#{version,jdbcType=INTEGER},</if>
+            <if test="status!=null">#{status,jdbcType=INTEGER},</if>
+        </trim>
+    </insert>
+
+    <update id="updateRole" parameterType="LONG">
+        UPDATE tb_role
+        <trim prefix="set" suffixOverrides=",">
+            <if test="name!=null">name=#{name},</if>
+            <if test="parentId!=null">parent_id=#{parentId},</if>
+            <if test="deptId!=null">dept_id=#{deptId},</if>
+            <if test="folderId!=null">folder_id=#{folderId},</if>
+            <if test="createTime!=null">create_time=#{createTime},</if>
+            <if test="createBy!=null">create_by=#{createBy},</if>
+            <if test="updateTime!=null">update_time=#{updateTime},</if>
+            <if test="updateBy!=null">update_by=#{updateBy},</if>
+            <if test="version!=null">version_=#{version},</if>
+            <if test="status!=null">status=#{status},</if>
+        </trim>
+        WHERE id = #{id}
+    </update>
+
+    <update id="deleteRole">
+        UPDATE tb_role set status = 1 WHERE id = #{id}
+    </update>
+
+    <select id="getAllRole" resultType="net.chensee.base.action.role.vo.RoleVo">
+        select r.*,rp.name as parentName,d.name as deptName
+        from tb_role as r
+        left join tb_role as rp on r.parent_id = rp.id
+        left join tb_dept as d on r.dept_id = d.id
+        <where>
+            <if test="true">
+                and r.status = 0
+            </if>
+            <if test="currentFolders != null &amp;&amp; currentFolders.size() != 0">
+                and
+                r.folder_id in
+                <foreach collection="currentFolders" item="id" index="index" open="(" close=")" separator=",">
+                    #{id}
+                </foreach>
+            </if>
+        </where>
+    </select>
+
+    <select id="getRoleById" resultType="net.chensee.base.action.role.vo.RoleVo">
+        select r.*,rp.name as parentName,d.name as deptName
+        from tb_role as r
+        left join tb_role as rp on r.parent_id = rp.id
+        left join tb_dept as d on r.dept_id = d.id
+        where r.id = #{id}
+    </select>
+
+    <select id="getUserByRoleId" resultType="net.chensee.base.action.user.vo.UserVo">
+        select u.*
+        from tb_user as u
+        left join tb_user_to_role as ur on u.id = ur.user_id
+        where u.status = 0 and ur.role_id = #{id} and ur.status = 0
+    </select>
+
+    <select id="getResourceIdsByRoleId" resultType="java.lang.Long">
+        select resource_id
+        from tb_role_resource r
+        where role_id= #{id} and status = 0
+        GROUP BY resource_id
+    </select>
+
+    <select id="getUserGroupByRoleId" resultType="net.chensee.base.action.userGroup.vo.UserGroupVo">
+        select ug.*,d.name as deptName
+        from tb_user_group as ug
+        left join tb_dept as d on ug.dept_id = d.id
+        left join tb_user_group_to_role as ugr on ugr.group_id = ug.id
+        where ug.status = 0 and ugr.role_id = #{id} and ugr = 0
+    </select>
+
+    <select id="getResourceByIds" resultType="java.lang.Integer">
+        select count(1) from tb_role_resource
+        where role_id=#{roleId}
+        and resource_id=#{resourceId}
+        and visual_folder_id=#{folderId}
+    </select>
+
+    <insert id="addUserToRole">
+        insert into tb_user_to_role
+        (user_id,role_id)
+        values
+        (#{userId},#{roleId})
+        on duplicate key update
+        status = 0
+    </insert>
+
+    <insert id="addResourceToRole">
+        insert into tb_role_resource
+        (role_id,resource_id,visual_folder_id,exclude_columns)
+        values (#{roleId},#{resourceId},#{visualFolderId},#{excludeColumns})
+    </insert>
+
+    <insert id="addUserGroupToRole">
+        insert into tb_user_group_to_role
+        (role_id,group_id)
+        values
+        (#{roleId},#{groupId})
+        on duplicate key update
+        status = 0
+    </insert>
+
+    <update id="removeUserFromRole">
+        update tb_user_to_role set status = 1
+        where user_id = #{userId} and role_id = #{roleId};
+    </update>
+
+    <update id="removeUserGroupFromRole">
+        update tb_user_group_to_role set status = 1
+        where group_id = #{groupId} and role_id = #{roleId};
+    </update>
+
+    <delete id="removeResourceByRoleId">
+        delete from tb_role_resource where role_id = #{roleId}
+    </delete>
+
+    <delete id="removeResourceFromRole">
+        delete from tb_role_resource where role_id = #{roleId} and resource_id = #{resourceId}
+    </delete>
+
+    <update id="updateResourceToRole">
+        update tb_role_resource set status = 0
+        where role_id = #{roleId}
+        and resource_id = #{resourceId}
+        and visual_folder_id=#{folderId}
+        and exclude_columns=#{excludeColumns}
+    </update>
+
+    <select id="getExcludeColumns" resultType="java.lang.String">
+        SELECT exclude_columns
+        FROM tb_role_resource
+        WHERE role_id = #{roleId}
+        AND resource_id = #{resourceId}
+        AND visual_folder_id = #{folderId}
+        AND STATUS = 0
+    </select>
+
+    <delete id="removeResourceByRoleResourceFolder">
+        DELETE FROM tb_role_resource
+        WHERE role_id = #{roleId}
+        AND resource_id = #{resourceId}
+        AND visual_folder_id = #{folderId};
+    </delete>
+
+</mapper>

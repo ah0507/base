@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="net.chensee.base.action.dictionary.mapper.DictionaryDao">
+    <insert id="addDictionary" keyProperty="id" useGeneratedKeys="true">
+        INSERT INTO tb_dictionary
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="name!=null"> `name`,</if>
+            <if test="code!=null"> `code`,</if>
+            <if test="groupId!=null"> `group_id`,</if>
+            <if test="status!=null"> `status`,</if>
+        </trim>
+        VALUES
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="name!=null"> #{name,jdbcType=VARCHAR},</if>
+            <if test="code!=null"> #{code,jdbcType=VARCHAR},</if>
+            <if test="groupId!=null"> #{groupId,jdbcType=BIGINT},</if>
+            <if test="status!=null"> #{status,jdbcType=INTEGER},</if>
+        </trim>
+    </insert>
+
+    <update id="updateDictionary"  parameterType="LONG">
+        UPDATE tb_dictionary
+        <trim prefix="set" suffixOverrides=",">
+            <if test="name!=null"> name=#{name},</if>
+            <if test="code!=null"> code=#{code},</if>
+            <if test="groupId!=null"> group_id=#{groupId},</if>
+            <if test="status!=null"> status=#{status},</if>
+        </trim>
+        WHERE id = #{id}
+    </update>
+
+    <select id="getByGroupId" resultType="net.chensee.base.action.dictionary.vo.DictionaryVo">
+        select * from tb_dictionary where status = 0 and group_id = #{groupId}
+    </select>
+
+    <update id="deleteDictionary">
+        UPDATE tb_dictionary set status = 1 WHERE id = #{id}
+    </update>
+</mapper>

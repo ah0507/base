@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="net.chensee.base.action.login.mapper.LoginDao">
+    <insert id="register" keyProperty="id" useGeneratedKeys="true">
+        INSERT INTO tb_login
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="userId!=null"> `user_id`,</if>
+            <if test="loginName!=null"> `login_name`,</if>
+            <if test="loginPass!=null"> `login_pass`,</if>
+            <if test="type!=null"> `type`,</if>
+            <if test="status!=null"> `status`,</if>
+        </trim>
+        VALUES
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="userId!=null"> #{user_id,jdbcType=BIGINT},</if>
+            <if test="loginName!=null"> #{login_name,jdbcType=VARCHAR},</if>
+            <if test="loginPass!=null"> #{login_pass,jdbcType=VARCHAR},</if>
+            <if test="type!=null"> #{type,jdbcType=VARCHAR},</if>
+            <if test="status!=null"> #{status,jdbcType=INTEGER},</if>
+        </trim>
+    </insert>
+
+    <update id="updateLogin"  parameterType="LONG">
+        UPDATE tb_login
+        <trim prefix="set" suffixOverrides=",">
+            <if test="userId!=null"> user_id=#{userId},</if>
+            <if test="loginName!=null"> login_name=#{loginName},</if>
+            <if test="loginPass!=null"> login_pass=#{loginPass},</if>
+            <if test="type!=null"> type=#{type},</if>
+            <if test="status!=null"> status=#{status},</if>
+        </trim>
+        WHERE id = #{id}
+    </update>
+
+    <select id="getLoginByName" resultType="net.chensee.base.action.login.vo.LoginVo">
+        select tl.*, u.real_name as realName, u.nick_name as nickName,
+        u.mobile as mobile, u.avatar as avatar
+        from tb_login tl
+        left join tb_user u on tl.user_id = u.id
+        <where>
+            <if test="loginName != null">
+                and tl.login_name = #{loginName}
+            </if>
+            <if test="true">
+                and tl.status = 0 and u.status = 0
+            </if>
+        </where>
+    </select>
+
+    <update id="deleteLogin">
+        UPDATE tb_login set status = 1 WHERE id = #{id}
+    </update>
+
+    <update id="deleteByUserId">
+        UPDATE tb_login set status = 1 WHERE user_id = #{userId}
+    </update>
+</mapper>

@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="net.chensee.base.action.resource.mapper.ResourceDao">
+    <insert id="addResource" keyProperty="id" useGeneratedKeys="true">
+        INSERT INTO tb_resource
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="parentId!=null"> `parent_id`,</if>
+            <if test="name!=null"> `name`,</if>
+            <if test="code!=null"> `code_`,</if>
+            <if test="menuType!=null"> `menu_type`,</if>
+            <if test="oprType!=null"> `opr_type`,</if>
+            <if test="num!=null"> `num`,</if>
+            <if test="path!=null"> `path`,</if>
+            <if test="method!=null"> `method`,</if>
+            <if test="icon!=null"> `icon`,</if>
+            <if test="folderId!=null"> `folder_id`,</if>
+            <if test="title!=null"> `title`,</if>
+            <if test="hidden!=null"> `hidden`,</if>
+            <if test="requireAuth!=null"> `require_auth`,</if>
+            <if test="component!=null"> `component`,</if>
+            <if test="redirect!=null"> `redirect`,</if>
+            <if test="columns!=null"> `columns`,</if>
+            <if test="createTime!=null"> `create_time`,</if>
+            <if test="createBy!=null"> `create_by`,</if>
+            <if test="updateTime!=null"> `update_time`,</if>
+            <if test="updateBy!=null"> `update_by`,</if>
+            <if test="version!=null"> `version_`,</if>
+            <if test="status!=null"> `status`,</if>
+        </trim>
+        VALUES
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="parentId!=null"> #{parentId,jdbcType=BIGINT},</if>
+            <if test="name!=null"> #{name,jdbcType=VARCHAR},</if>
+            <if test="code!=null"> #{code,jdbcType=VARCHAR},</if>
+            <if test="menuType!=null"> #{menuType,jdbcType=VARCHAR},</if>
+            <if test="oprType!=null"> #{oprType,jdbcType=VARCHAR},</if>
+            <if test="num!=null"> #{num,jdbcType=INTEGER},</if>
+            <if test="path!=null"> #{path,jdbcType=VARCHAR},</if>
+            <if test="method!=null"> #{method,jdbcType=VARCHAR},</if>
+            <if test="icon!=null"> #{icon,jdbcType=VARCHAR},</if>
+            <if test="folderId!=null"> #{folderId,jdbcType=INTEGER},</if>
+            <if test="title!=null"> #{title,jdbcType=VARCHAR},</if>
+            <if test="hidden!=null"> #{hidden,jdbcType=INTEGER},</if>
+            <if test="requireAuth!=null"> #{requireAuth,jdbcType=INTEGER},</if>
+            <if test="component!=null"> #{component,jdbcType=VARCHAR},</if>
+            <if test="redirect!=null"> #{redirect,jdbcType=VARCHAR},</if>
+            <if test="columns!=null"> #{columns,jdbcType=VARCHAR},</if>
+            <if test="createTime!=null"> #{createTime,jdbcType=DATE},</if>
+            <if test="createBy!=null"> #{createBy,jdbcType=BIGINT},</if>
+            <if test="updateTime!=null"> #{updateTime,jdbcType=DATE},</if>
+            <if test="updateBy!=null"> #{updateBy,jdbcType=BIGINT},</if>
+            <if test="version!=null"> #{version,jdbcType=INTEGER},</if>
+            <if test="status!=null"> #{status,jdbcType=INTEGER},</if>
+        </trim>
+    </insert>
+
+    <update id="updateResource"  parameterType="LONG">
+        UPDATE tb_resource
+        <trim prefix="set" suffixOverrides=",">
+            <if test="parentId!=null"> parent_id=#{parentId},</if>
+            <if test="name!=null"> name=#{name},</if>
+            <if test="code!=null"> code_=#{code},</if>
+            <if test="menuType!=null"> menu_type=#{menuType},</if>
+            <if test="oprType!=null"> opr_type=#{oprType},</if>
+            <if test="num!=null"> num=#{num},</if>
+            <if test="path!=null"> path=#{path},</if>
+            <if test="method!=null"> method=#{method},</if>
+            <if test="icon!=null"> icon=#{icon},</if>
+            <if test="folderId!=null"> folder_id=#{folderId},</if>
+            <if test="title!=null"> title=#{title},</if>
+            <if test="hidden!=null"> hidden=#{hidden},</if>
+            <if test="requireAuth!=null"> require_auth=#{requireAuth},</if>
+            <if test="component!=null"> component=#{component},</if>
+            <if test="redirect!=null"> redirect=#{redirect},</if>
+            <if test="columns!=null"> columns=#{columns},</if>
+            <if test="createTime!=null"> create_time=#{createTime},</if>
+            <if test="createBy!=null"> create_by=#{createBy},</if>
+            <if test="updateTime!=null"> update_time=#{updateTime},</if>
+            <if test="updateBy!=null"> update_by=#{updateBy},</if>
+            <if test="version!=null"> version_=#{version},</if>
+            <if test="status!=null"> status=#{status},</if>
+        </trim>
+        WHERE id = #{id}
+    </update>
+
+    <update id="deleteResource">
+        UPDATE tb_resource set status = 1 WHERE id = #{id}
+    </update>
+
+    <select id="getAllResource" resultType="net.chensee.base.action.resource.vo.ResourceVo">
+        select r.*,rp.title as parentName,f.name as folderName
+        from tb_resource as r
+        left join tb_resource as rp on r.parent_id = rp.id
+        left join tb_folder as f on r.folder_id = f.id
+        <where>
+            <if test="true">
+                and r.status = 0
+            </if>
+            <!--<if test="currentFolders != null &amp;&amp; currentFolders.size() != 0">
+                and
+                r.folder_id in
+                <foreach collection="currentFolders" item="id" index="index" open="(" close=")" separator=",">
+                    #{id}
+                </foreach>
+            </if>-->
+        </where>
+    </select>
+
+    <select id="getById" resultType="net.chensee.base.action.resource.vo.ResourceVo">
+        select r.*,rp.title as parentName,f.name as folderName
+        from tb_resource as r
+        left join tb_resource as rp on r.parent_id = rp.id
+        left join tb_folder as f on r.folder_id = f.id
+        where r.id = #{id}
+    </select>
+
+    <select id="getChildren" resultType="net.chensee.base.action.resource.vo.ResourceVo">
+        select * from tb_resource where parent_id = #{id} and status = 0
+    </select>
+
+    <select id="getLinkResources" resultType="Map">
+        select userCount, userGroupCount, roleCount from
+        (select count(1) userCount from tb_user_resource where resource_id = 1) ur,
+        (select count(1) userGroupCount from tb_user_group_resource where resource_id = 1) ugr,
+        (select count(1) roleCount from tb_role_resource where resource_id = 1) rr;
+    </select>
+</mapper>

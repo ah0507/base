@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="net.chensee.base.action.dept.mapper.DeptDao">
+    <insert id="addDept" keyProperty="id" useGeneratedKeys="true">
+        INSERT INTO tb_dept
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="name!=null">`name`,</if>
+            <if test="shortName!=null">`short_name`,</if>
+            <if test="parentId!=null">`parent_id`,</if>
+            <if test="type!=null">`type_`,</if>
+            <if test="isVirtual!=null">`is_virtual`,</if>
+            <if test="folderId!=null">`folder_id`,</if>
+            <if test="createTime!=null">`create_time`,</if>
+            <if test="createBy!=null">`create_by`,</if>
+            <if test="updateTime!=null">`update_time`,</if>
+            <if test="updateBy!=null">`update_by`,</if>
+            <if test="version!=null">`version_`,</if>
+            <if test="status!=null">`status`,</if>
+        </trim>
+        VALUES
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="name!=null">#{name,jdbcType=VARCHAR},</if>
+            <if test="shortName!=null">#{shortName,jdbcType=VARCHAR},</if>
+            <if test="parentId!=null">#{parentId,jdbcType=BIGINT},</if>
+            <if test="type!=null">#{type,jdbcType=INTEGER},</if>
+            <if test="isVirtual!=null">#{isVirtual,jdbcType=INTEGER},</if>
+            <if test="folderId!=null">#{folderId,jdbcType=INTEGER},</if>
+            <if test="createTime!=null">#{createTime,jdbcType=DATE},</if>
+            <if test="createBy!=null">#{createBy,jdbcType=BIGINT},</if>
+            <if test="updateTime!=null">#{updateTime,jdbcType=DATE},</if>
+            <if test="updateBy!=null">#{updateBy,jdbcType=BIGINT},</if>
+            <if test="version!=null">#{version,jdbcType=INTEGER},</if>
+            <if test="status!=null">#{status,jdbcType=INTEGER},</if>
+        </trim>
+    </insert>
+
+    <update id="updateDept" parameterType="LONG">
+        UPDATE tb_dept
+        <trim prefix="set" suffixOverrides=",">
+            <if test="name!=null">name=#{name},</if>
+            <if test="shortName!=null">short_name=#{shortName},</if>
+            <if test="parentId!=null">parent_id=#{parentId},</if>
+            <if test="type!=null">type_=#{type},</if>
+            <if test="isVirtual!=null">is_virtual=#{isVirtual},</if>
+            <if test="folderId!=null">folder_id=#{folderId},</if>
+            <if test="createTime!=null">create_time=#{createTime},</if>
+            <if test="createBy!=null">create_by=#{createBy},</if>
+            <if test="updateTime!=null">update_time=#{updateTime},</if>
+            <if test="updateBy!=null">update_by=#{updateBy},</if>
+            <if test="version!=null">version_=#{version},</if>
+            <if test="status!=null">status=#{status},</if>
+        </trim>
+        WHERE id = #{id}
+    </update>
+
+    <update id="deleteDept">
+        UPDATE tb_dept set status = 1 WHERE id = #{id}
+    </update>
+
+    <select id="getAllDept" resultType="net.chensee.base.action.dept.vo.DeptVo">
+        select d.*,tb.name as parentName,tb.short_name as parentShortName,f.name as folderName
+        from tb_dept as d
+        left join tb_dept as tb on d.parent_id = tb.id
+        left join tb_folder as f on d.folder_id = f.id
+        <where>
+            <if test="true">
+                and d.status = 0
+            </if>
+            <if test="currentFolders != null &amp;&amp; currentFolders.size() != 0">
+                and
+                d.folder_id in
+                <foreach collection="currentFolders" item="id" index="index" open="(" close=")" separator=",">
+                    #{id}
+                </foreach>
+            </if>
+        </where>
+    </select>
+
+    <select id="getDeptById" resultType="net.chensee.base.action.dept.vo.DeptVo">
+        select d.*,tb.name as parentName,tb.short_name as parentShrotName,f.name as folderName
+        from tb_dept as d
+        left join tb_dept as tb on d.parent_id = tb.id
+        left join tb_folder as f on d.folder_id = f.id
+        where d.id = #{id}
+    </select>
+
+    <select id="getUserByDeptId" resultType="net.chensee.base.action.user.vo.UserVo">
+        select u.*
+        from tb_user as u
+        left join tb_user_to_dept as ud on u.id = ud.user_id
+        where ud.dept_id = #{id} and u.status = 0 and ud.status = 0;
+    </select>
+
+    <insert id="addUserToDept">
+        insert into tb_user_to_dept
+        (user_id,dept_id)
+        values
+        (#{userId},#{deptId})
+        on duplicate key update
+        status = 0
+    </insert>
+
+    <update id="removeUserFromDept">
+        update tb_user_to_dept set status = 1
+        where user_id = #{userId} and dept_id = #{deptId};
+    </update>
+
+    <select id="getChildrenDepts" resultType="net.chensee.base.action.dept.vo.DeptVo">
+        select d.*,tb.name as parentName,tb.short_name as parentShrotName
+        from tb_dept as d
+        left join tb_dept as tb on d.parent_id = tb.id
+        where d.status = 0 and d.parent_id = #{deptId}
+    </select>
+
+    <select id="getRolesByDeptId" resultType="net.chensee.base.action.role.vo.RoleVo">
+        select r.*, rp.name as parentName
+        from tb_role as r
+        left join tb_role as rp on r.parent_id = rp.id
+        where r.dept_id = #{deptId} and r.status = 0
+    </select>
+
+    <select id="getUserGroupByDeptId" resultType="net.chensee.base.action.userGroup.vo.UserGroupVo">
+        select * from tb_user_group where dept_id = #{deptId} and status = 0
+    </select>
+
+    <update id="deleteBatchDept">
+        update tb_dept set status = 1
+        where id in
+        <foreach collection="deptIdList" item="id" index="index" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+    </update>
+</mapper>

@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="net.chensee.base.action.userGroup.mapper.UserGroupDao">
+    <insert id="addUserGroup" keyProperty="id" useGeneratedKeys="true">
+        INSERT INTO tb_user_group
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="name!=null">`name`,</if>
+            <if test="deptId!=null">`dept_id`,</if>
+            <if test="folderId!=null">`folder_id`,</if>
+            <if test="createTime!=null">`create_time`,</if>
+            <if test="createBy!=null">`create_by`,</if>
+            <if test="updateTime!=null">`update_time`,</if>
+            <if test="updateBy!=null">`update_by`,</if>
+            <if test="version!=null">`version_`,</if>
+            <if test="status!=null">`status`,</if>
+        </trim>
+        VALUES
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="name!=null">#{name,jdbcType=VARCHAR},</if>
+            <if test="deptId!=null">#{deptId,jdbcType=INTEGER},</if>
+            <if test="folderId!=null">#{folderId,jdbcType=INTEGER},</if>
+            <if test="createTime!=null">#{createTime,jdbcType=DATE},</if>
+            <if test="createBy!=null">#{createBy,jdbcType=BIGINT},</if>
+            <if test="updateTime!=null">#{updateTime,jdbcType=DATE},</if>
+            <if test="updateBy!=null">#{updateBy,jdbcType=BIGINT},</if>
+            <if test="version!=null">#{version,jdbcType=INTEGER},</if>
+            <if test="status!=null">#{status,jdbcType=INTEGER},</if>
+        </trim>
+    </insert>
+
+    <update id="updateUserGroup" parameterType="LONG">
+        UPDATE tb_user_group
+        <trim prefix="set" suffixOverrides=",">
+            <if test="name!=null">name=#{name},</if>
+            <if test="deptId!=null">dept_id=#{deptId},</if>
+            <if test="folderId!=null">folder_id=#{folderId},</if>
+            <if test="createTime!=null">create_time=#{createTime},</if>
+            <if test="createBy!=null">create_by=#{createBy},</if>
+            <if test="updateTime!=null">update_time=#{updateTime},</if>
+            <if test="updateBy!=null">update_by=#{updateBy},</if>
+            <if test="version!=null">version_=#{version},</if>
+            <if test="status!=null">status=#{status},</if>
+        </trim>
+        WHERE id = #{id}
+    </update>
+
+    <update id="deleteUserGroupById">
+        UPDATE tb_user_group set status = 1 WHERE id = #{id}
+    </update>
+
+    <select id="getAllUserGroup" resultType="net.chensee.base.action.userGroup.vo.UserGroupVo">
+        select ug.*,d.name as deptName
+        from tb_user_group as ug
+        left join tb_dept as d on ug.dept_id = d.id
+        <where>
+            <if test="true">
+                and ug.status = 0
+            </if>
+            <if test="name!=null">
+                and ug.name like concat('%',#{name},'%')
+            </if>
+            <if test="currentFolders != null &amp;&amp; currentFolders.size() != 0">
+                and
+                ug.folder_id in
+                <foreach collection="currentFolders" item="id" index="index" open="(" close=")" separator=",">
+                    #{id}
+                </foreach>
+            </if>
+        </where>
+        limit #{pageStart},#{pageSize}
+    </select>
+
+    <select id="getUserGroupById" resultType="net.chensee.base.action.userGroup.vo.UserGroupVo">
+        select ug.*,d.name as deptName
+        from tb_user_group as ug
+        left join tb_dept as d on ug.dept_id = d.id
+        where ug.id = #{id}
+    </select>
+
+    <select id="getUserByUserGroupId" resultType="net.chensee.base.action.user.vo.UserVo">
+        select u.*
+        from tb_user as u
+        left join tb_user_to_user_group as uug on u.id = uug.user_id
+        where uug.group_id = #{id} and uug.status = 0 and u.status = 0
+    </select>
+
+    <select id="getRoleByUserGroupId" resultType="net.chensee.base.action.role.vo.RoleVo">
+        select r.*,rp.name as parentName,d.name as deptName
+        from tb_role as r
+        left join tb_user_group_to_role as ugr on r.id = ugr.role_id
+        left join tb_role as rp on r.parent_id = rp.id
+        left join tb_dept as d on r.dept_id = d.id
+        where ugr.group_id = #{id} and ugr.status = 0 and r.status = 0
+    </select>
+
+    <select id="getResourceIdsByUserGroupId" resultType="java.lang.Long">
+        select resource_id
+        from tb_user_group_resource r
+        where group_id= #{groupId}
+        GROUP BY resource_id
+    </select>
+
+    <select id="getResourceToUserGroup" resultType="java.lang.Integer">
+        select count(1) from tb_user_group_resource where group_id=#{groupId} and resource_id=#{resourceId} and visual_folder_id=#{visualFolderId}
+    </select>
+
+    <insert id="addUserToUserGroup">
+        insert into tb_user_to_user_group
+        (user_id,group_id)
+        values
+        (#{userId},#{groupId})
+        on duplicate key update
+        visual_folder_ids = #{visualFolderIds}, status = 0
+    </insert>
+
+    <insert id="addRoleToUserGroup">
+        insert into tb_user_group_to_role
+        (role_id,group_id)
+        values
+        (#{roleId},#{groupId})
+        on duplicate key update
+        status = 0
+    </insert>
+
+    <insert id="addResourceToUserGroup">
+        insert into tb_user_group_resource
+        (group_id,resource_id,visual_folder_id,exclude_columns)
+        values (#{groupId},#{resourceId},#{visualFolderId},#{excludeColumns})
+    </insert>
+
+    <select id="getCount" resultType="Long">
+        select count(1) from tb_user_group as ug
+        left join tb_dept as d on ug.dept_id = d.id
+        <where>
+            <if test="true">
+                and ug.status = 0
+            </if>
+            <if test="name != null ">
+                and ug.name like concat('%',#{name},'%')
+            </if>
+        </where>
+    </select>
+
+    <update id="removeUserFromUserGroup">
+        update tb_user_to_user_group set status = 1
+        where user_id= #{userId} and group_id = #{groupId}
+    </update>
+
+    <update id="removeRoleFromUserGroup">
+        update tb_user_group_to_role set status = 0
+        where role_id= #{roleId} and group_id = #{groupId};
+    </update>
+
+    <update id="deleteResourceByGroupId">
+        update tb_user_group_to_role set status = 0
+        where group_id = #{groupId}
+    </update>
+
+    <delete id="removeResourceByGroupId">
+        DELETE FROM tb_user_group_resource WHERE group_id = #{groupId};
+    </delete>
+
+    <delete id="removeResourceFromUserGroup">
+        delete from tb_user_group_resource
+        where group_id = #{groupId} and resource_id = #{resourceId}
+    </delete>
+
+    <update id="updateResourceToUserGroup">
+        update tb_user_group_resource set status = 0
+        where group_id = #{groupId}
+        and resource_id = #{resourceId}
+        and visual_folder_id = #{visualFolderId}
+        and exclude_columns = #{excludeColumns}
+    </update>
+
+    <select id="getExcludeColumns" resultType="java.lang.String">
+        SELECT exclude_columns
+        FROM tb_user_group_resource
+        WHERE group_id = #{groupId}
+        AND resource_id = #{resourceId}
+        AND visual_folder_id = #{visualFolderId}
+    </select>
+
+    <delete id="removeResourceByGroupResourceFolder">
+        DELETE FROM tb_user_group_resource
+        WHERE group_id = #{groupId}
+        AND resource_id = #{resourceId}
+        AND visual_folder_id = #{folderId}
+    </delete>
+
+</mapper>

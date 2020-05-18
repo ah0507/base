@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="net.chensee.base.action.dictionary.mapper.DictionaryGroupDao">
+    <insert id="addDictionaryGroup" keyProperty="id" useGeneratedKeys="true">
+        INSERT INTO tb_dictionary_group
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="name!=null"> `name`,</if>
+            <if test="code!=null"> `code`,</if>
+            <if test="status!=null"> `status`,</if>
+        </trim>
+        VALUES
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="name!=null"> #{name,jdbcType=VARCHAR},</if>
+            <if test="code!=null"> #{code,jdbcType=VARCHAR},</if>
+            <if test="status!=null"> #{status,jdbcType=INTEGER},</if>
+        </trim>
+    </insert>
+
+    <update id="updateDictionaryGroup"  parameterType="LONG">
+        UPDATE tb_dictionary_group
+        <trim prefix="set" suffixOverrides=",">
+            <if test="name!=null"> name=#{name},</if>
+            <if test="code!=null"> code=#{code},</if>
+            <if test="status!=null"> status=#{status},</if>
+        </trim>
+        WHERE id = #{id}
+    </update>
+
+    <select id="getAllDictionaryGroup" resultType="net.chensee.base.action.dictionary.vo.DictionaryGroupVo">
+        select * from tb_dictionary_group where status = 0 limit #{pageStart}, #{pageSize}
+    </select>
+
+    <select id="getAllDictionaryGroups" resultType="net.chensee.base.action.dictionary.vo.DictionaryGroupVo">
+        select * from tb_dictionary_group where status = 0
+    </select>
+
+    <update id="deleteDictionaryGroup">
+        update tb_dictionary_group set status = 1 WHERE id = #{id}
+    </update>
+
+    <select id="getByName" resultType="net.chensee.base.action.dictionary.vo.DictionaryGroupVo">
+        select * from tb_dictionary_group where status = 0 and name like concat('%', #{name}, '%') limit #{pageStart}, #{pageSize}
+    </select>
+
+    <select id="getCount" resultType="Long">
+        select count(1) from tb_dictionary_group
+        <where>
+            <if test="name != null">
+                and name like concat('%', #{name}, '%')
+            </if>
+            <if test="true">
+                and status = 0
+            </if>
+        </where>
+    </select>
+</mapper>
